@@ -12,8 +12,8 @@ questions1 = [
     {
         'type': 'list',
         'name': 'user_option',
-        'message': 'choose type of feature scaling - ',
-        'choices': ["Normalisation/MinMaxScaling", "Standardisation/z-score", "PowerTransformer", "RobustScaler",
+        'message': 'choose type of feature scaling (objects/strings  will be dropped from data frame if you use feature scaling ) - ',
+        'choices': ["Not required","Normalisation/MinMaxScaling", "Standardisation/z-score", "PowerTransformer", "RobustScaler",
                     "MaxAbsScaler", "QuantileTransformer"]
     }
 ]
@@ -35,37 +35,39 @@ def hello(f):
     answers1 = piq(questions1)
     try:
         df = pd.read_csv(f)
-        for a in df.columns:
-            if df[a].dtypes == 'object':
+
+        if answers1.get("user_option") != "Not required":
+            for a in df.columns:
+             if df[a].dtypes == 'object':
                 df.drop([a], axis=1, inplace=True)
-        df.dropna(inplace=True)
+
         if answers1.get("user_option") == "Normalisation/MinMaxScaling":
             scaler = MinMaxScaler().fit(df)
-            dfx = pd.DataFrame(scaler.transform(df), columns=df.columns)
+            df = pd.DataFrame(scaler.transform(df), columns=df.columns)
 
         elif answers1.get("user_option") == "Standardisation/z-score":
             scaler = StandardScaler().fit(df)
-            dfx = pd.DataFrame(scaler.transform(df), columns=df.columns)
+            df = pd.DataFrame(scaler.transform(df), columns=df.columns)
 
         elif answers1.get("user_option") == "PowerTransformer":
             scaler = PowerTransformer(method='yeo-johnson')
-            dfx = pd.DataFrame(scaler.fit_transform(df), columns=df.columns)
+            df = pd.DataFrame(scaler.fit_transform(df), columns=df.columns)
 
         elif answers1.get("user_option") == "RobustScaler":
             scaler = RobustScaler()
-            dfx = pd.DataFrame(scaler.fit_transform(df), columns=df.columns)
+            df = pd.DataFrame(scaler.fit_transform(df), columns=df.columns)
 
         elif answers1.get("user_option") == "MaxAbsScaler":
             scaler = MaxAbsScaler()
-            dfx = pd.DataFrame(scaler.fit_transform(df), columns=df.columns)
+            df = pd.DataFrame(scaler.fit_transform(df), columns=df.columns)
 
         elif answers1.get("user_option") == "QuantileTransformer":
             scaler = QuantileTransformer()
-            dfx = pd.DataFrame(scaler.fit_transform(df), columns=df.columns)
+            df = pd.DataFrame(scaler.fit_transform(df), columns=df.columns)
 
         answers2 = piq(questions2)
-        dfx.to_csv(answers2.get("file_name"))
-        print(dfx)
+        df.to_csv(answers2.get("file_name"))
+        print(df)
 
     except:
         print("csv file not found")
