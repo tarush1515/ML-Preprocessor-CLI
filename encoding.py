@@ -13,7 +13,7 @@ class encoding:
     ]
 
     def __init__(self, x):
-    self.x = x
+        self.x = x
 
     def categoricalColumn(self):
         print('\n{0: <20}'.format("Categorical Column") + '{0: <5}'.format("Unique Values"))
