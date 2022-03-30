@@ -7,8 +7,9 @@ from data_description import DataDescription
 class encoding:
     tasks = [
         '1. Show categorical columns',
-        '2. Performing One Hot encoding',
-        '3. Show the dataset'
+        '2. Performing Label encoding',
+        '3. Performing One-Hot encoding'
+        '4. Show the dataset'
         # TODO -To add seperate category for ordinal variables -> map function
     ]
 
@@ -21,11 +22,37 @@ class encoding:
         for column in self.x.select_dtypes(include="object"):
             print('{0: <20}'.format(column) + '{0: <5}'.format(self.x[column].nunique()))
 
-    def encoding(self):
+    def label_encoding(self):
         categorical_columns = self.x.select_dtypes(include="object")
 
         while(1):
-            column =input("Which column would you like to one hot encode?(Press -1 to go back)").lower()
+            column=input("Which column would you like to one hot encode?(Press -1 to go back)").lower()
+
+            if column=="-1":
+                break
+            if column in categorical_columns:
+                class_1e = LabelEncoder()
+                self.x[column] = class_1e.fit_transform(self.x[column].values)
+
+                choice = input("Are there more columns to be encoded?(y/n)").lower()
+                if choice=="y":
+                    continue
+                else:
+                    self.categoricalColumn()
+                    break
+            else:
+                print("Wrong column name. Try Again.")
+                
+
+
+
+
+
+    def hot_encoding(self):
+        categorical_columns = self.x.select_dtypes(include="object")
+
+        while(1):
+            column =input("Which column would you like to one-hot encode?(Press -1 to go back)").lower()
             if column=="-1":
                 break
             if column in categorical_columns:
@@ -63,10 +90,14 @@ class encoding:
 
             elif choice == 2:
                 self.categoricalColumn()
-                self.encoding()
+                self.label_encoding()
 
             elif choice == 3:
-                DataDescription.showDataset(self)
+                self.categoricalColumn()
+                self.hot_encoding()
+
+            elif choice == 4:
+                print(self.x)
 
             else:
                 print("Wrong Integer value. Try again.")
