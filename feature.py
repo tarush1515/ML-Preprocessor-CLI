@@ -1,77 +1,91 @@
-import click
 import pandas as pd
-from PyInquirer import prompt as piq
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.preprocessing import StandardScaler
-from sklearn.preprocessing import PowerTransformer
-from sklearn.preprocessing import RobustScaler
-from sklearn.preprocessing import MaxAbsScaler
-from sklearn.preprocessing import QuantileTransformer
+from PyInquirer import prompt, Separator
+from examples import custom_style_2
+from sklearn.preprocessing import MinMaxScaler, StandardScaler, PowerTransformer, RobustScaler, MaxAbsScaler, \
+    QuantileTransformer
 
-questions1 = [
-    {
-        'type': 'list',
-        'name': 'user_option',
-        'message': 'choose type of feature scaling (objects/strings  will be dropped from data frame if you use feature scaling ) - ',
-        'choices': ["Not required","Normalisation/MinMaxScaling", "Standardisation/z-score", "PowerTransformer", "RobustScaler",
-                    "MaxAbsScaler", "QuantileTransformer"]
-    }
-]
-questions2 = [
-    {
-        'type': 'input',
-        'name': 'file_name',
-        'message': 'enter file name of csv file to be saved with .csv extension',
-    }
-]
+df = pd.read_csv("train.csv")
 
 
-@click.command()
-@click.option('-f', prompt='enter pre processed csv file location', help='location of csv file')
-def hello(f):
-    """cli program to read csv file and implement feature scaling
+def feature(df):
+    a = []
+    flag = 1
+    for i in df.columns:
+        if df[i].dtypes == 'object':
+            a.append({'name': i, 'disabled': 'object'})
 
-       format: python feature.py -f 'filename.csv' """
-    answers1 = piq(questions1)
-    try:
-        df = pd.read_csv(f)
+        else:
+            a.append({'name': i})
+            flag = 0
+    if flag:
+        print("\nevery column of dataframe is object! cant implement feature scaling! Redirecting to main menu...\n")
+        return df
 
-        if answers1.get("user_option") != "Not required":
-            for a in df.columns:
-             if df[a].dtypes == 'object':
-                df.drop([a], axis=1, inplace=True)
+    questions1 = [
+        {
+            'type': 'checkbox',
+            'qmark': '*',
+            'message': 'Select columns for feature scaling\n',
+            'name': 'column_option',
+            'choices': a
+        }
+    ]
+    questions2 = [
+        {
+            'type': 'list',
+            'qmark': '*',
+            'name': 'feature_option',
+            'message': 'choose type of feature scaling to be applied for selected rows - ',
+            'choices': ["MinMaxScaler", "StandardScaler", "PowerTransformer", "RobustScaler", "MaxAbsScaler",
+                        "QuantileTransformer", Separator(' '), Separator('Menu options! ='), "back", "main menu"]
+        }
+    ]
+    questions3 = [
+        {
+            'type': 'list',
+            'qmark': '*',
+            'name': 'user_option',
+            'message': 'confirm! do you want your current chosen feature scaling  options to apply (caution!if you choose "No" data will be unchanged)',
+            'choices': ["Yes and continue", "Yes and return to main menu", Separator(' '), "No and continue",
+                        "No and return to main menu"]
+        }
+    ]
 
-        if answers1.get("user_option") == "Normalisation/MinMaxScaling":
-            scaler = MinMaxScaler().fit(df)
-            df = pd.DataFrame(scaler.transform(df), columns=df.columns)
+    answers1 = prompt(questions1, style=custom_style_2)
+    cols = answers1.get('column_option')
+    if cols:
+        print(cols)
+        answers2 = prompt(questions2, style=custom_style_2)
 
-        elif answers1.get("user_option") == "Standardisation/z-score":
-            scaler = StandardScaler().fit(df)
-            df = pd.DataFrame(scaler.transform(df), columns=df.columns)
+        if answers2.get("feature_option") == "back":
+            return feature(df)
+        elif answers2.get("feature_option") == "main menu":
+            return df
+        else:
+            answers3 = prompt(questions3, style=custom_style_2)
+            if answers3.get("user_option") == "Yes and continue":
+                dfx = df[cols]
+                scaler = eval(answers2.get("feature_option"))().fit(dfx)
+                dfx = pd.DataFrame(scaler.transform(dfx), columns=cols)
+                for j in cols:
+                    df[j] = dfx[j]
+                return feature(df)
+            elif answers3.get("user_option") == "Yes and return to main menu":
+                dfx = df[cols]
+                scaler = eval(answers2.get("feature_option"))().fit(dfx)
+                dfx = pd.DataFrame(scaler.transform(dfx), columns=cols)
+                for j in cols:
+                    df[j] = dfx[j]
+                return df
+            elif answers3.get("user_option") == "No and continue":
+                return feature(df)
+            elif answers3.get("user_option") == "No and return to main menu":
+                return feature(df)
+    else:
+        print('\nnothing is chosen! Redirecting...\n')
+        return feature(df)
 
-        elif answers1.get("user_option") == "PowerTransformer":
-            scaler = PowerTransformer(method='yeo-johnson')
-            df = pd.DataFrame(scaler.fit_transform(df), columns=df.columns)
 
-        elif answers1.get("user_option") == "RobustScaler":
-            scaler = RobustScaler()
-            df = pd.DataFrame(scaler.fit_transform(df), columns=df.columns)
+df = feature(df)
 
-        elif answers1.get("user_option") == "MaxAbsScaler":
-            scaler = MaxAbsScaler()
-            df = pd.DataFrame(scaler.fit_transform(df), columns=df.columns)
-
-        elif answers1.get("user_option") == "QuantileTransformer":
-            scaler = QuantileTransformer()
-            df = pd.DataFrame(scaler.fit_transform(df), columns=df.columns)
-
-        answers2 = piq(questions2)
-        df.to_csv(answers2.get("file_name"))
-        print(df)
-
-    except:
-        print("csv file not found")
-
-
-if __name__ == '__main__':
-    hello()
+print(df)
