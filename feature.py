@@ -1,8 +1,7 @@
 import pandas as pd
 from PyInquirer import prompt, Separator
 from examples import custom_style_2
-from sklearn.preprocessing import MinMaxScaler, StandardScaler, PowerTransformer, RobustScaler, MaxAbsScaler, \
-    QuantileTransformer
+from sklearn.preprocessing import MinMaxScaler, StandardScaler, PowerTransformer, RobustScaler, MaxAbsScaler, QuantileTransformer
 
 df = pd.read_csv("train.csv")
 
@@ -80,7 +79,7 @@ def feature(df):
             elif answers3.get("user_option") == "No and continue":
                 return feature(df)
             elif answers3.get("user_option") == "No and return to main menu":
-                return feature(df)
+                return df
     else:
         print('\nnothing is chosen! Redirecting...\n')
         return feature(df)
