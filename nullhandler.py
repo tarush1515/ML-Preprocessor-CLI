@@ -2,6 +2,7 @@ import os
 from PyInquirer import style_from_dict, Token, prompt, Separator
 from prompt_toolkit.validation import Validator, ValidationError
 import pandas as pd
+import numpy as np
 
 def main():
     flist=[]
@@ -23,18 +24,19 @@ def main():
 
     ques1=[
         {
-            'type':'checkbox',
+            'type':'list',
             'name': 'file_name',
             'message': 'Select file:',
             'choices': flist,
-            'validate': lambda ans: True if len(ans)==1
-                else 'You must choose only 1 file.'
         }
     ]
     ans1=prompt(ques1,style=style)
     file_name=ans1.get('file_name')
 
-    df=pd.read_csv(file_name[0])
+    df=pd.read_csv(file_name)
+
+    df = df.replace(r'^\s*$', np.nan, regex=True)
+
     cols=list(df.columns)
     columns=[]
     for i in cols:
@@ -43,7 +45,9 @@ def main():
 
     choices=[
         {'name':'remove','message':"Remove all rows with null"},
-        {'name':'mean','message':"Replace with mean values when possible"}
+        {'name':'mean','message':"Replace with mean values when possible"},
+        {'name':'median','message':"Replace with median value when possible"},
+        {'name':'mode','message':"Replace with mode value when possible"}
     ]
     ques2=[
         {
@@ -53,7 +57,7 @@ def main():
             'choices': columns
         },
         {
-            'type':"checkbox",
+            'type':"list",
             'name':"choice",
             'message':"How do u want to handle the null values?",
             'choices':choices
@@ -61,24 +65,59 @@ def main():
     ]
     ans2=prompt(ques2,style=style)
     col_name=ans2.get('col_name')
-    col_name=col_name[0]
     choice=ans2.get('choice')
 
-    if col_name!='all':
+    if len(col_name)>1 and col_name[-1]=='all':
+        col_name=list(['all'])
+
+    if col_name[0]!='all':
         if choice=='remove':
-            df[col_name].dropna(inplace=True)
-        else:
-            if df.dtypes[col_name]=='int64' or df.dtypes[col_name]=='float64':
-                df[col_name].fillna(df[col_name].mean(),inplace=True)
-    else:
-        if choice=='remove':
-            df.dropna(inplace=True)
-        else:
-            for i in list(df.columns):
+            for i in col_name:
+                df[i]=df[i].dropna()
+                print(df[i].head())
+        elif choice=='mean':
+            for i in col_name:
                 if df.dtypes[i]=='int64' or df.dtypes[i]=='float64':
                     df[i].fillna(df[i].mean(),inplace=True)
+                else:
+                    df[i].dropna(inplace=True)
+        elif choice=='median':
+            for i in col_name:
+                if df.dtypes[i]=='int64' or df.dtypes[i]=='float64':
+                    df[i].fillna(df[i].median(),inplace=True)
+                else:
+                    df[i].dropna(inplace=True)
+        elif choice=='mode':
+            for i in col_name:
+                if df.dtypes[i]=='int64' or df.dtypes[i]=='float64':
+                    df[i].fillna(df[i].mode()[0],inplace=True)
+                else:
+                    df[i].dropna(inplace=True)
+    else:
+        col_name=list(df.columns)
+        if choice=='remove':
+            df.dropna(inplace=True)
 
-    df.to_csv(file_name[0].rstrip('.csv')+'_new.csv')
+        elif choice=='mean':
+            for i in col_name:
+                if df.dtypes[i]=='int64' or df.dtypes[i]=='float64':
+                    df[i].fillna(df[i].mean(),inplace=True)
+                else:
+                    df[i].dropna(inplace=True)
+        elif choice=='median':
+            for i in col_name:
+                if df.dtypes[i]=='int64' or df.dtypes[i]=='float64':
+                    df[i].fillna(df[i].median(),inplace=True)
+                else:
+                    df[i].dropna(inplace=True)
+        elif choice=='mode':
+            for i in col_name:
+                if df.dtypes[i]=='int64' or df.dtypes[i]=='float64':
+                    df[i].fillna(df[i].mode()[0],inplace=True)
+                else:
+                    df[i].dropna(inplace=True)
+
+    df.to_csv(file_name[:-4]+'_new.csv')
     print("File successfuly saved")
 if __name__=='__main__':
     main()
