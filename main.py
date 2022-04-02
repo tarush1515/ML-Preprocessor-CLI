@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from PyInquirer import prompt, Separator
 from examples import custom_style_2 as style
-from sklearn.preprocessing import MinMaxScaler, StandardScaler, PowerTransformer, RobustScaler, MaxAbsScaler,QuantileTransformer
+from sklearn.preprocessing import MinMaxScaler, StandardScaler, PowerTransformer, RobustScaler, MaxAbsScaler, QuantileTransformer
 
 
 def main():
