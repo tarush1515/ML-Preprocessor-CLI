@@ -1,5 +1,6 @@
 import os
 from os.path import exists
+import pyfiglet
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -10,6 +11,7 @@ from sklearn.preprocessing import MinMaxScaler, StandardScaler, PowerTransformer
 
 
 def main():
+    print(pyfiglet.figlet_format("Welcome  to\nML  Preprocessor CLI  !  !  !"))
     flist = [Separator('  csv files present in the current directory =')]
     for f in os.listdir():
         if f.endswith('.csv'):
@@ -22,7 +24,7 @@ def main():
             'type': 'list',
             'qmark': '*',
             'name': 'user_option',
-            'message': 'Welcome to ML Preprocessor CLI! select csv file:',
+            'message': 'select a csv file:',
             'choices': flist,
         }
     ]
@@ -65,12 +67,13 @@ def main():
 
 
 def main_menu(df):
+    print(pyfiglet.figlet_format("Main  menu  !"))
     questions1 = [
         {
             'type': 'list',
             'qmark': '*',
             'name': 'user_option',
-            'message': 'Welcome to main menu!! what you wanna do with your data set  - ',
+            'message': 'what you wanna do with your data set  - ',
             'choices': [Separator(' '), Separator('  Data analyser and visualiser options! ='), "print head",
                         "dataframe basic info", "percentage of null values", "dataframe describe",
                         "dataframe correlation with heatmap", Separator(' '), Separator('  preprocessing options! ='),
