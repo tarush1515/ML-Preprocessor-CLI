@@ -49,11 +49,18 @@ def main():
         file_name = ans1.get("user_option")
 
     if exists(file_name):
-        df = pd.read_csv(file_name)
+        x = str(open(file_name))
+        encoding = ""
+        for y in x[-3::-1]:
+            if y == "'":
+                break
+            else:
+                encoding = y + encoding
+        df = pd.read_csv(file_name, encoding=encoding)
         df = main_menu(df)
         save_file(df, file_name)
     else:
-        print("\n* file doesnt exist in the entered path! Redirecting...\n")
+        print("\n* file doesnt exist in the entered path/invalid file path! Redirecting...\n")
         main()
 
 
@@ -102,7 +109,7 @@ def main_menu(df):
     answers1 = prompt(questions1, style=style)
 
     if answers1.get("user_option") == "print head":
-        print(df.head(10))
+        print(df.head(20))
         return main_menu(df)
     elif answers1.get("user_option") == "dataframe basic info":
         df.info()
