@@ -270,7 +270,7 @@ def save_file(df, file_name):
                 df.to_csv(answers2.get("file_path"))
 
             except:
-                print("\n* absolute path in incorrect format -_- ! Redirecting...\n")
+                print("\n* absolute path in incorrect format/doesnt exist -_- ! Redirecting...\n")
                 save_file(df, file_name)
             print("* File successfully saved...\n")
             exit_code()
