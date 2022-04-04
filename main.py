@@ -77,7 +77,8 @@ def main_menu(df):
             'message': 'what you wanna do with your data set  - ',
             'choices': [Separator(' '), Separator('  Data analyser and visualiser options! ='), "print head",
                         "dataframe basic info", "percentage of null values", "dataframe describe",
-                        "dataframe correlation with heatmap", "bivariate analyser", Separator(' '), Separator('  preprocessing options! ='),
+                        "dataframe correlation with heatmap", "bivariate analyser", Separator(' '),
+                        Separator('  preprocessing options! ='),
                         "nullhandler", "character encoder", "feature scaler",
                         Separator(' '), Separator('  menu options! ='), "discard current work and start new(caution!)",
                         "save preprocessed data!!!", "Force exit!"]
@@ -291,7 +292,9 @@ def bivariate(df):
     print(cols)
     if len(cols) == 2:
         answers2 = prompt(questions2, style=style)
+        pd.options.mode.chained_assignment = None
         dfx = df[cols]
+        dfx.dropna(inplace=True)
         if answers2.get("bivariate_option") == "back":
             return bivariate(df)
         elif answers2.get("bivariate_option") == "main menu":
@@ -321,11 +324,14 @@ def bivariate(df):
             sns.heatmap(dfx.corr(), cmap="YlGnBu", annot=True)
             plt.show()
         elif answers2.get("bivariate_option") == "Simple linear regression model stats":
-            dfx.dropna(inplace=True)
-            x = dfx[cols[0]]
-            y = dfx[cols[1]]
-            model1 = sm.OLS(y, sm.add_constant(x)).fit()
-            model2 = sm.OLS(x, sm.add_constant(y)).fit()
+            x1 = dfx[cols[0]]
+            x1 = sm.add_constant(x1)
+            x2 = dfx[cols[1]]
+            x2 = sm.add_constant(x2)
+            y1 = dfx[cols[1]]
+            y2 = dfx[cols[0]]
+            model1 = sm.OLS(y1, x1).fit()
+            model2 = sm.OLS(y2, x2).fit()
             print(model1.summary())
             print(model2.summary())
         elif answers2.get("bivariate_option") == "Distribution plot with hue":
@@ -351,7 +357,7 @@ def bivariate(df):
         else:
             return df
     else:
-        print('\n* choose only 2 no less or No more its Bivariate analysis ! Redirecting...\n')
+        print('\n* choose only 2 no less and no more than 2 its Bivariate analysis ! Redirecting...\n')
         return bivariate(df)
 
 
