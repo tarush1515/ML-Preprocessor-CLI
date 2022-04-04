@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import statsmodels.api as sm
 from PyInquirer import prompt, Separator
 from examples import custom_style_2 as style
 from sklearn.preprocessing import MinMaxScaler, StandardScaler, PowerTransformer, RobustScaler, MaxAbsScaler, QuantileTransformer
@@ -76,7 +77,7 @@ def main_menu(df):
             'message': 'what you wanna do with your data set  - ',
             'choices': [Separator(' '), Separator('  Data analyser and visualiser options! ='), "print head",
                         "dataframe basic info", "percentage of null values", "dataframe describe",
-                        "dataframe correlation with heatmap", Separator(' '), Separator('  preprocessing options! ='),
+                        "dataframe correlation with heatmap", "bivariate analyser", Separator(' '), Separator('  preprocessing options! ='),
                         "nullhandler", "character encoder", "feature scaler",
                         Separator(' '), Separator('  menu options! ='), "discard current work and start new(caution!)",
                         "save preprocessed data!!!", "Force exit!"]
@@ -127,6 +128,9 @@ def main_menu(df):
         print(df.corr())
         sns.heatmap(df.corr(), cmap="YlGnBu", annot=True)
         plt.show()
+        return main_menu(df)
+    elif answers1.get("user_option") == "bivariate analyser":
+        df = bivariate(df)
         return main_menu(df)
     elif answers1.get("user_option") == "nullhandler":
         # df = nullhandler(df)
@@ -235,6 +239,120 @@ def feature(df):
     else:
         print('\n* nothing is chosen! Redirecting...\n')
         return feature(df)
+
+
+def bivariate(df):
+    a = [Separator(' '), Separator(' Select 2 columns for bivariate analysis =')]
+
+    flag = 0
+    for i in df.columns:
+        if df[i].dtypes == 'object':
+            a.append({'name': i, 'disabled': 'object'})
+
+        else:
+            a.append({'name': i})
+            flag = flag + 1
+    if flag <= 1:
+        print(
+            "\n* There are no 2 non object columns in dataframe ! cant implement bivariate analysis! Redirecting to main menu...\n")
+        return df
+
+    questions1 = [
+        {
+            'type': 'checkbox',
+            'qmark': '*',
+            'message': 'Welcome to bivariate analyser! choose 2 columns',
+            'name': 'column_option',
+            'choices': a
+        }
+    ]
+    questions2 = [
+        {
+            'type': 'list',
+            'qmark': '*',
+            'name': 'bivariate_option',
+            'message': 'choose bivariate analyser options to  - ',
+            'choices': ["Scatter plot", "Hex plot", "Box plot", "Violin plot", "Correlation heat map",
+                        "Simple linear regression model stats", "Distribution plot with hue",
+                        Separator(' '), Separator('  Menu options! ='), "back", "main menu"]
+        }
+    ]
+    questions3 = [
+        {
+            'type': 'list',
+            'qmark': '*',
+            'name': 'user_option',
+            'message': 'Choose where you want to go next  - ',
+            'choices': [Separator(' '), "Continue", "Main menu"]
+        }
+    ]
+    answers1 = prompt(questions1, style=style)
+    cols = answers1.get('column_option')
+    print(cols)
+    if len(cols) == 2:
+        answers2 = prompt(questions2, style=style)
+        dfx = df[cols]
+        if answers2.get("bivariate_option") == "back":
+            return bivariate(df)
+        elif answers2.get("bivariate_option") == "main menu":
+            return df
+        elif answers2.get("bivariate_option") == "Scatter plot":
+            fig, axes = plt.subplots(1, 2)
+            sns.scatterplot(x=cols[0], y=cols[1], data=dfx, ax=axes[0])
+            sns.scatterplot(x=cols[1], y=cols[0], data=dfx, ax=axes[1])
+            plt.show()
+        elif answers2.get("bivariate_option") == "Hex plot":
+            fig, axes = plt.subplots(1, 2)
+            dfx.plot.hexbin(x=cols[0], y=cols[1], gridsize=15, ax=axes[0])
+            dfx.plot.hexbin(x=cols[1], y=cols[0], gridsize=15, ax=axes[1])
+            plt.show()
+        elif answers2.get("bivariate_option") == "Box plot":
+            fig, axes = plt.subplots(1, 2)
+            sns.boxplot(x=cols[0], y=cols[1], data=dfx, ax=axes[0])
+            sns.boxplot(x=cols[1], y=cols[0], data=dfx, ax=axes[1])
+            plt.show()
+        elif answers2.get("bivariate_option") == "Violin plot":
+            fig, axes = plt.subplots(1, 2)
+            sns.violinplot(x=cols[0], y=cols[1], data=dfx, ax=axes[0])
+            sns.violinplot(x=cols[1], y=cols[0], data=dfx, ax=axes[1])
+            plt.show()
+        elif answers2.get("bivariate_option") == "Correlation heat map":
+            print(dfx.corr())
+            sns.heatmap(dfx.corr(), cmap="YlGnBu", annot=True)
+            plt.show()
+        elif answers2.get("bivariate_option") == "Simple linear regression model stats":
+            dfx.dropna(inplace=True)
+            x = dfx[cols[0]]
+            y = dfx[cols[1]]
+            model1 = sm.OLS(y, sm.add_constant(x)).fit()
+            model2 = sm.OLS(x, sm.add_constant(y)).fit()
+            print(model1.summary())
+            print(model2.summary())
+        elif answers2.get("bivariate_option") == "Distribution plot with hue":
+            questions4 = [
+                {
+                    'type': 'list',
+                    'qmark': '#',
+                    'name': 'hue_option',
+                    'message': 'Choose hue for distribution plot(use hues which have bi,tri,quad types in their column like classes,levels,options) - ',
+                    'choices': cols
+                }
+            ]
+            answers4 = prompt(questions4, style=style)
+            if answers4.get("hue_option") == cols[0]:
+                sns.displot(data=dfx, x=cols[1], hue=cols[0], kde=True)
+                plt.show()
+            else:
+                sns.displot(data=dfx, x=cols[0], hue=cols[1], kde=True)
+                plt.show()
+        answers3 = prompt(questions3, style=style)
+        if answers3.get("user_option") == "Continue":
+            return bivariate(df)
+        else:
+            return df
+    else:
+        print('\n* choose only 2 no less or No more its Bivariate analysis ! Redirecting...\n')
+        return bivariate(df)
 
 
 def save_file(df, file_name):
