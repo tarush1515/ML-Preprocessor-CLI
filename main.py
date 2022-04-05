@@ -292,8 +292,8 @@ def bivariate(df):
     print(cols)
     if len(cols) == 2:
         answers2 = prompt(questions2, style=style)
-        pd.options.mode.chained_assignment = None
-        dfx = df[cols]
+
+        dfx = df[cols].copy()
         dfx.dropna(inplace=True)
         if answers2.get("bivariate_option") == "back":
             return bivariate(df)
@@ -314,6 +314,7 @@ def bivariate(df):
             sns.boxplot(x=cols[0], y=cols[1], data=dfx, ax=axes[0])
             sns.boxplot(x=cols[1], y=cols[0], data=dfx, ax=axes[1])
             plt.show()
+
         elif answers2.get("bivariate_option") == "Violin plot":
             fig, axes = plt.subplots(1, 2)
             sns.violinplot(x=cols[0], y=cols[1], data=dfx, ax=axes[0])
