@@ -1,0 +1,5 @@
+# dirs
+__pycache__/
+
+# ps1 scripts
+activate.ps1
